@@ -39,14 +39,16 @@ change_config () {
 
 fileconfig="$HOME/.kube/config"
 location="$HOME/.kube/credentials"
-if [[ ${#1} -gt 1 ]]; then {
+if [[ ${#1} -gt 0 ]]; then {
 	checkfile=$(ls $location/ | grep $1)
-	if [[ ${#checkfile} -gt 1 ]]; then {
+	if [[ ${#checkfile} -gt 0 ]]; then {
 		change_config $1
 	} else {
 		echo "File not found"
 	} fi
-} else {
+} elif [[ -z $1 ]]; then {
 	show_config
 	input_config
+} else {
+	echo "File not found"
 } fi

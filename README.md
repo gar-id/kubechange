@@ -3,7 +3,6 @@
 Simple bash script for change kubectl config
 
 ### MacOS installation :
-Note : starting from Catalina, Apple change default MacOS shell to zsh
 - Adjust line 31-32 in kubechange.sh with your configuration
 - Copy kubechange.sh to some directory (for example : /opt) :  
 `sudo cp -R kubechange.sh /opt/kubechange.sh`
@@ -18,3 +17,7 @@ After installation, you can change kube config with `kubechange` command. There 
 - Type `kubechange fileconfig` will let this script automatically change config if file available  
 Example :
 `kubechange k3s-node1`
+
+### Notes :
+- Starting from Catalina, Apple change default MacOS shell to zsh
+- If you have kube config file named with only 1 character, please rename it to at least 2 characters
