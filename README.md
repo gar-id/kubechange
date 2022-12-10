@@ -10,7 +10,7 @@ Note : starting from Catalina, Apple change default MacOS shell to zsh
 - Create alias to .zshrc file :  
 `echo 'alias kubechange="bash /opt/kubechange.sh"' >> $HOME/.zshrc`
 - Reload .zshrc file
-`source $HOME/.zshrc
+`source $HOME/.zshrc`
 
 ### Usage :
 After installation, you can change kube config with `kubechange` command. There is 2 option : 
