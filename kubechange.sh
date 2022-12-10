@@ -3,6 +3,8 @@
 scan_config () {
 	countresult=$(ls -l $location | awk '{print $9}' | awk NF)
 	result=($(ls -l $location | awk '{print $9}' | awk NF))
+	totalfile=$(ls $location | wc -l)
+	((totalfile=totalfile-1))
 }
 
 show_config () {
@@ -15,11 +17,18 @@ show_config () {
 }
 
 input_config () {
-	echo "Choose with order number (start from 0) : "
+	numbercheck='^[0-9]+$'
+	echo "Choose with order number (0-$totalfile) : "
 	read choice
-        echo ${result[$choice]}
-        filename=$(echo ${result[$choice]})
-        cp -R $location/$filename $fileconfig
+	if [[ $choice -gt $totalfile ]]; then
+		echo "Invalid number. Input range is 0-$totalfile"
+	elif [[ $choice =~ $numbercheck ]]; then
+	        echo ${result[$choice]}
+	        filename=$(echo ${result[$choice]})
+        	cp -R $location/$filename $fileconfig
+	else
+                echo "Invalid input. Only type available order number" >&2; exit 1
+	fi
 }
 
 change_config () {
