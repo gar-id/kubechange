@@ -17,4 +17,4 @@ After installation, you can change kube config with `kubechange` command. There 
 - Type `kubechange` and choose your config file
 - Type `kubechange fileconfig` will let this script automatically change config if file available  
 Example :
-`kubectl k3s-node1`
+`kubechange k3s-node1`

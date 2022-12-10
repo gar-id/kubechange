@@ -15,7 +15,7 @@ show_config () {
 }
 
 input_config () {
-	echo "Pilih config dengan nomor (mulai dari 0) : "
+	echo "Choose with order number (start from 0) : "
 	read choice
         echo ${result[$choice]}
         filename=$(echo ${result[$choice]})
