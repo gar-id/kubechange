@@ -15,6 +15,6 @@ Note : starting from Catalina, Apple change default MacOS shell to zsh
 ### Usage :
 After installation, you can change kube config with `kubechange` command. There is 2 option : 
 - Type `kubechange` and choose your config file
-- Type `kubechange fileconfig` will let this script automatically change config if file available
+- Type `kubechange fileconfig` will let this script automatically change config if file available  
 Example :
 `kubectl k3s-node1`
