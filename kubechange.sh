@@ -1,8 +1,8 @@
 #!/bin/bash
 
 scan_config () {
-	countresult=$(ls -l $location | awk '{print $9}' | awk NF)
-	result=($(ls -l $location | awk '{print $9}' | awk NF))
+	countresult=$(ls -lp $location | grep -v / | awk '{print $9}' | awk NF)
+	result=($(ls -lp $location | grep -v / | awk '{print $9}' | awk NF))
 	totalfile=$(ls $location | wc -l)
 	((totalfile=totalfile-1))
 }
@@ -23,18 +23,17 @@ input_config () {
 	if [[ $choice -gt $totalfile ]]; then
 		echo "Invalid number. Input range is 0-$totalfile"
 	elif [[ $choice =~ $numbercheck ]]; then
-	        echo ${result[$choice]}
 	        filename=$(echo ${result[$choice]})
         	cp -R $location/$filename $fileconfig
+                echo "Kube context changed to ${result[$choice]}"
 	else
                 echo "Invalid input. Only type available order number" >&2; exit 1
 	fi
 }
 
 change_config () {
-        echo $1
-        filename=$1
-        cp -R $location/$filename $fileconfig
+        cp -R $location/$1 $fileconfig
+        echo "Kube context changed to $1"
 }
 
 fileconfig="$HOME/.kube/config"
