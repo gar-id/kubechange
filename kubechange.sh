@@ -20,13 +20,13 @@ input_config () {
 	numbercheck='^[0-9]+$'
 	echo "Choose with order number (0-$totalfile) : "
 	read choice
-	if [[ $choice -gt $totalfile ]]; then
-		echo "Invalid number. Input range is 0-$totalfile"
-	elif [[ $choice =~ $numbercheck ]]; then
+	if [[ $choice -gt $totalfile ]]; then {
+		echo "Invalid number. Input range is 0-$totalfile" 
+	} elif [[ $choice =~ $numbercheck ]]; then {
 	        filename=$(echo ${result[$choice]})
         	cp -R $location/$filename $fileconfig
-                echo "Kube context changed to ${result[$choice]}"
-	else
+                echo "Kube context changed to ${result[$choice]}" 
+	} else
                 echo "Invalid input. Only type available order number" >&2; exit 1
 	fi
 }
@@ -39,8 +39,10 @@ change_config () {
 fileconfig="$HOME/.kube/config"
 location="$HOME/.kube/credentials"
 if [[ ${#1} -gt 0 ]]; then {
-	checkfile=$(ls $location/ | grep $1)
-	if [[ ${#checkfile} -gt 0 ]]; then {
+        checkfile=$(ls $location/ | grep $1)
+	if [[ $1 == "edit" ]]; then {
+		vi $fileconfig
+	} elif [[ ${#checkfile} -gt 0 ]]; then {
 		change_config $1
 	} else {
 		echo "File not found"
