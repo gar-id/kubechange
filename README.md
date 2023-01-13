@@ -20,10 +20,11 @@ After installation, you can change kube config with `kubechange` command. There 
 - Type `kubechange context filename` will let this script automatically change config if file available  
 - Type `kubechange ns` to change your default kube namespace
 - Type `kubechange ns namespacename` will let this script automatically change namespace if available
+
 Example :
-`kubechange context k3s-node1`
-`kubechange ns prod`
-`kubechange edit`
+- `kubechange context k3s-node1`
+- `kubechange ns prod`
+- `kubechange edit`
 
 ### Notes :
 - Starting from Catalina, Apple change default MacOS shell to zsh
