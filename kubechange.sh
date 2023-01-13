@@ -1,4 +1,87 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# Renders a text based list of options that can be selected by the
+# user using up, down and enter keys and returns the chosen option.
+#
+#   Arguments   : list of options, maximum of 256
+#                 "opt1" "opt2" ...
+#   Return value: selected index (0 for opt1, 1 for opt2 ...)
+function select_option {
+
+    # little helpers for terminal print control and key input
+    ESC=$( printf "\033")
+    cursor_blink_on()  { printf "$ESC[?25h"; }
+    cursor_blink_off() { printf "$ESC[?25l"; }
+    cursor_to()        { printf "$ESC[$1;${2:-1}H"; }
+    print_option()     { printf "   $1 "; }
+    print_selected()   { printf "  $ESC[7m $1 $ESC[27m"; }
+    get_cursor_row()   { IFS=';' read -sdR -p $'\E[6n' ROW COL; echo ${ROW#*[}; }
+    key_input()        { read -s -n3 key 2>/dev/null >&2
+                         if [[ $key = $ESC[A ]]; then echo up;    fi
+                         if [[ $key = $ESC[B ]]; then echo down;  fi
+                         if [[ $key = ""     ]]; then echo enter; fi; }
+
+    # initially print empty new lines (scroll down if at bottom of screen)
+    for opt; do printf "\n"; done
+
+    # determine current screen position for overwriting the options
+    local lastrow=`get_cursor_row`
+    local startrow=$(($lastrow - $#))
+
+    # ensure cursor and input echoing back on upon a ctrl+c during read -s
+    trap "cursor_blink_on; stty echo; printf '\n'; exit" 2
+    cursor_blink_off
+
+    local selected=0
+    while true; do
+        # print options by overwriting the last lines
+        local idx=0
+        for opt; do
+            cursor_to $(($startrow + $idx))
+            if [ $idx -eq $selected ]; then
+                print_selected "$opt"
+            else
+                print_option "$opt"
+            fi
+            ((idx++))
+        done
+
+        # user key control
+        case `key_input` in
+            enter) break;;
+            up)    ((selected--));
+                   if [ $selected -lt 0 ]; then selected=$(($# - 1)); fi;;
+            down)  ((selected++));
+                   if [ $selected -ge $# ]; then selected=0; fi;;
+        esac
+    done
+
+    # cursor position back to normal
+    cursor_to $lastrow
+    printf "\n"
+    cursor_blink_on
+
+    return $selected
+}
+
+show_help () {
+echo -e "\n\
+Usage   : kubechange [OPTIONS] FILENAME \n\
+\n\
+Options : \n\
+help            Show kubechange usage \n\
+new             Create new kubecontext to default directory \n\
+edit            Edit your current kube context \n\
+context         Choose your kube context \n\
+ns              Set your default kube namespace \n\
+\n\
+Example :\n\
+kubechange new k3s-prod         -> Create kube context file with name k3s-prod\n\
+Kubechange context k3s-dev      -> Choose k3s-dev kube context\n\
+Kubechange context              -> Show all kube context\n\
+kubechange ns prod              -> Set your default kube namespace to prod\n\
+"
+}
 
 scan_config () {
 	countresult=$(ls -lp $location | grep -v / | awk '{print $9}' | awk NF)
@@ -7,13 +90,26 @@ scan_config () {
 	((totalfile=totalfile-1))
 }
 
-show_config () {
-	scan_config
-	number=0
-	for i in $countresult; do
-		echo "[$number] ${result[$number]}"
-		((number=number+1))
-	done
+input_config () {
+        numbercheck='^[0-9]+$'
+        echo "Choose kube context : "
+        select_option "${result[@]}"
+        choice=$?
+
+        if [[ $choice -gt $totalfile ]]; then {
+                echo "Invalid number. Input range is 0-$totalfile"
+        } elif [[ $choice =~ $numbercheck ]]; then {
+                filename=$(echo ${result[$choice]})
+                cp -R $location/$filename $fileconfig
+                echo "Kube context changed to ${result[$choice]}"
+        } else
+                echo "Invalid input. Only type available order number" >&2; exit 1
+        fi
+}
+
+change_config () {
+        cp -R $location/$1 $fileconfig
+        echo "Kube context changed to $1"
 }
 
 scan_namespace () {
@@ -23,34 +119,6 @@ scan_namespace () {
 	((totalnamespace=totalnamespace-1))
 }
 
-show_namespace () {
-	scan_namespace
-	number=0
-	for i in $countnamespace; do
-		echo "[$number] ${listnamespace[$number]}"
-		((number=number+1))
-	done
-}
-
-show_help () {
-echo -e "\n\
-Usage	: kubechange [OPTIONS] FILENAME \n\
-\n\
-Options : \n\
-help		Show kubechange usage \n\
-new		Create new kubecontext to default directory \n\
-edit		Edit your current kube context \n\
-context		Choose your kube context \n\
-ns		Set your default kube namespace \n\
-\n\
-Example	:\n\
-kubechange new k3s-prod		-> Create kube context file with name k3s-prod\n\
-Kubechange context k3s-dev	-> Choose k3s-dev kube context\n\
-Kubechange context		-> Show all kube context\n\
-kubechange ns prod		-> Set your default kube namespace to prod\n\
-"
-}
-
 change_ns () {
 	kubectl config set-context --current --namespace=$1
 	echo "Kube default namespace changed to $1"
@@ -58,8 +126,10 @@ change_ns () {
 
 input_ns () {
 	numbercheck='^[0-9]+$'
-	echo "Choose with order number (0-$totalnamespace) : "
-	read choice
+	echo "Choose default namespace : "
+	select_option "${listnamespace[@]}"
+	choice=$?
+
 	if [[ $choice -gt $totalnamespace ]]; then {
 		echo "Invalid number. Input rage is 0-$totalnamespace"
 	} elif [[ $choice =~ $numbercheck ]]; then {
@@ -68,26 +138,6 @@ input_ns () {
 	} else
 		echo "Invalid input. Only type available order number" >&2; exit 1
         fi
-}
-
-input_config () {
-	numbercheck='^[0-9]+$'
-	echo "Choose with order number (0-$totalfile) : "
-	read choice
-	if [[ $choice -gt $totalfile ]]; then {
-		echo "Invalid number. Input range is 0-$totalfile" 
-	} elif [[ $choice =~ $numbercheck ]]; then {
-	        filename=$(echo ${result[$choice]})
-        	cp -R $location/$filename $fileconfig
-                echo "Kube context changed to ${result[$choice]}" 
-	} else
-                echo "Invalid input. Only type available order number" >&2; exit 1
-	fi
-}
-
-change_config () {
-        cp -R $location/$1 $fileconfig
-        echo "Kube context changed to $1"
 }
 
 fileconfig="$HOME/.kube/config"
@@ -111,7 +161,7 @@ if [[ ${#1} -gt 0 ]]; then {
 		if [[ ${#checkfile} -gt 0 ]]; then {
 			change_config $2
 		} elif [[ -z $2 ]]; then {
-			show_config
+			scan_config
 			input_config
 		} else {
 			echo "File not found"
@@ -121,7 +171,7 @@ if [[ ${#1} -gt 0 ]]; then {
 			change_ns $checkns
 			echo "Kube namespace change to $checkns"
 		} elif [[ -z $2 ]]; then {
-			show_namespace
+			scan_namespace
 			input_ns
 		} else {
 			echo "Namespace not found"
