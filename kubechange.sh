@@ -74,12 +74,15 @@ new             Create new kubecontext to default directory \n\
 edit            Edit your current kube context \n\
 context         Choose your kube context \n\
 ns              Set your default kube namespace \n\
+rm		Delete your kube context (use with caution!) \n\
 \n\
 Example :\n\
 kubechange new k3s-prod         -> Create kube context file with name k3s-prod\n\
 Kubechange context k3s-dev      -> Choose k3s-dev kube context\n\
 Kubechange context              -> Show all kube context\n\
 kubechange ns prod              -> Set your default kube namespace to prod\n\
+kubechange rm current		-> Delete current file (not source file)\n\
+kubechange rm k3s-dev		-> Delete k3s-dev source file context\n\
 "
 }
 
@@ -110,6 +113,11 @@ input_config () {
 change_config () {
         cp -R $location/$1 $fileconfig
         echo "Kube context changed to $1"
+}
+
+delete_config () {
+        rm $1
+        echo "Kube context $1 deleted."
 }
 
 scan_namespace () {
@@ -144,7 +152,6 @@ fileconfig="$HOME/.kube/config"
 location="$HOME/.kube/credentials"
 if [[ ${#1} -gt 0 ]]; then {
         checkfile=$(ls $location/ | grep $2 2> /dev/null)
-	checkns=$(kubectl get namespace | awk '(NR>1) {print $1}' | grep $2 2> /dev/null)
 	if [[ $1 == "edit" ]]; then {
 		echo -e "Editing current kube context"
 		sleep 0.2
@@ -157,6 +164,16 @@ if [[ ${#1} -gt 0 ]]; then {
 		} fi
 	} elif [[ $1 == "help" ]]; then {
 		show_help
+        } elif [[ $1 == "rm" ]]; then { 
+                if [[ $2 == "current" ]]; then {
+			delete_config ~/.kube/config
+		} elif [[ ${#checkfile} -gt 0 ]]; then {
+			delete_config $location/$2
+		} elif [[ -z $2 ]]; then {
+			echo -e "Kubechange requires exactly 1 argument.\nSee 'kubechange help'."
+		} else {
+                        echo "File not found"
+                } fi	
 	} elif [[ $1 == "context" ]]; then {
 		if [[ ${#checkfile} -gt 0 ]]; then {
 			change_config $2
@@ -167,6 +184,7 @@ if [[ ${#1} -gt 0 ]]; then {
 			echo "File not found"
 		} fi
 	} elif [[ $1 == "ns" ]]; then {
+		checkns=$(kubectl get namespace | awk '(NR>1) {print $1}' | grep $2 2> /dev/null)
 		if [[ ${#checkns} -gt 0 ]]; then {
 			change_ns $checkns
 			echo "Kube namespace change to $checkns"
