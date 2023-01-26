@@ -184,10 +184,10 @@ if [[ ${#1} -gt 0 ]]; then {
 			echo "File not found"
 		} fi
 	} elif [[ $1 == "ns" ]]; then {
-		checkns=$(kubectl get namespace | awk '(NR>1) {print $1}' | grep $2 2> /dev/null)
-		if [[ ${#checkns} -gt 0 ]]; then {
-			change_ns $checkns
-			echo "Kube namespace change to $checkns"
+		#checkns=$(kubectl get namespace | awk '(NR>1) {print $1}' | grep $2 2> /dev/null)
+		if [[ ${#2} -gt 0 ]]; then {
+			change_ns $2
+			echo "Kube namespace change to $2"
 		} elif [[ -z $2 ]]; then {
 			scan_namespace
 			input_ns
