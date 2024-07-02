@@ -83,6 +83,7 @@ Kubechange context              -> Show all kube context\n\
 kubechange ns prod              -> Set your default kube namespace to prod\n\
 kubechange rm current		-> Delete current file (not source file)\n\
 kubechange rm k3s-dev		-> Delete k3s-dev source file context\n\
+kubechange info			-> Check current config name\n\
 "
 }
 
@@ -104,6 +105,7 @@ input_config () {
         } elif [[ $choice =~ $numbercheck ]]; then {
                 filename=$(echo ${result[$choice]})
                 cp -R $location/$filename $fileconfig
+		write_name $filename
                 echo "Kube context changed to ${result[$choice]}"
         } else
                 echo "Invalid input. Only type available order number" >&2; exit 1
@@ -148,6 +150,11 @@ input_ns () {
         fi
 }
 
+write_name () {
+        echo $1 > $statusfile
+}
+
+statusfile="$HOME/.kube/contextname"
 fileconfig="$HOME/.kube/config"
 location="$HOME/.kube/credentials"
 if [[ ${#1} -gt 0 ]]; then {
@@ -177,6 +184,7 @@ if [[ ${#1} -gt 0 ]]; then {
 	} elif [[ $1 == "context" ]]; then {
 		if [[ ${#checkfile} -gt 0 ]]; then {
 			change_config $2
+			write_name $2
 		} elif [[ -z $2 ]]; then {
 			scan_config
 			input_config
@@ -194,6 +202,9 @@ if [[ ${#1} -gt 0 ]]; then {
 		} else {
 			echo "Namespace not found"
 		} fi
+	} elif [[ $1 == "info" ]]; then {
+		currentContext=$(cat $statusfile)
+		echo "Current context name is $currentContext"
 	} else {
 		echo -e "Kubechange requires exactly 1 argument.\nSee 'kubechange help'."
 	} fi
