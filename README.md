@@ -3,7 +3,7 @@
 Simple bash script for change kubectl config
 
 ### MacOS installation :
-- Adjust line 159 in kubechange.sh with your configuration
+- Adjust line 160 in kubechange.sh with your configuration
 - Copy kubechange.sh to some directory (for example : /opt) :  
 `sudo cp -R kubechange.sh /opt/kubechange.sh`
 - Create alias to .zshrc file :  
