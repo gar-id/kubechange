@@ -70,9 +70,10 @@ Usage   : kubechange [OPTIONS] FILENAME \n\
 \n\
 Options : \n\
 help            Show kubechange usage \n\
-new             Create new kubecontext to default directory \n\
 edit            Edit your current kube context \n\
 context         Choose your kube context \n\
+info		Your current kube context name \n\
+new             Create new kubecontext to default directory \n\
 ns              Set your default kube namespace \n\
 rm		Delete your kube context (use with caution!) \n\
 \n\
